@@ -12,6 +12,11 @@ targets:
       repo_ref: main
       repo_hash: 5f23abc93e192e49875d3e7de88ddff00c7331a8
       repo_path: modules/api-docs
+    - folder_name: repository-base
+      repo_url: https://github.com/inteon/makefile-modules.git
+      repo_ref: fix_self_upgrade
+      repo_hash: 50505d92c003e0a85836c3ec7445d77436160468
+      repo_path: modules/repository-base
     - folder_name: boilerplate
       repo_url: https://github.com/cert-manager/makefile-modules.git
       repo_ref: main
@@ -57,11 +62,6 @@ targets:
       repo_ref: main
       repo_hash: 5f23abc93e192e49875d3e7de88ddff00c7331a8
       repo_path: modules/oci-image
-    - folder_name: repository-base
-      repo_url: https://github.com/cert-manager/makefile-modules.git
-      repo_ref: main
-      repo_hash: 5f23abc93e192e49875d3e7de88ddff00c7331a8
-      repo_path: modules/repository-base
     - folder_name: tools
       repo_url: https://github.com/cert-manager/makefile-modules.git
       repo_ref: main
