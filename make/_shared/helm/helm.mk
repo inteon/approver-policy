@@ -53,6 +53,9 @@ $(helm_chart_archive): $(helm_chart_sources) | $(NEEDS_HELM) $(NEEDS_YQ) $(bin_d
 		echo "Chart name does not match the name in the helm_chart_name variable"; \
 		exit 1; \
 	fi
+	
+	$(YQ) '.annotations."artifacthub.io/prerelease" = "$(IS_PRERELEASE)"' \
+		--inplace $(helm_chart_source_dir_versioned)/Chart.yaml
 
 	mkdir -p $(dir $@)
 	$(HELM) package $(helm_chart_source_dir_versioned) \
@@ -65,11 +68,24 @@ $(helm_chart_archive): $(helm_chart_sources) | $(NEEDS_HELM) $(NEEDS_YQ) $(bin_d
 ## @category [shared] Helm Chart
 helm-chart: $(helm_chart_archive)
 
+ifdef helm_docs_use_helm_tool
+
+helm_tool_header_search ?= ^<!-- AUTO-GENERATED -->
+helm_tool_footer_search ?= ^<!-- /AUTO-GENERATED -->
+
+.PHONY: generate-helm-docs
+## Generate Helm chart documentation.
+## @category [shared] Generate/ Verify
+generate-helm-docs: | $(NEEDS_HELM-TOOL)
+	$(HELM-TOOL) inject -i $(helm_chart_source_dir)/values.yaml -o $(helm_chart_source_dir)/README.md --header-search "$(helm_tool_header_search)" --footer-search "$(helm_tool_footer_search)"
+else
 .PHONY: generate-helm-docs
 ## Generate Helm chart documentation.
 ## @category [shared] Generate/ Verify
 generate-helm-docs: | $(NEEDS_HELM-DOCS)
 	$(HELM-DOCS) $(helm_chart_source_dir)/
+endif
+
 
 shared_generate_targets += generate-helm-docs
 
