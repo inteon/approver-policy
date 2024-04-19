@@ -15,16 +15,12 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    
-    env:
-      SOURCE_BRANCH: "${{ github.ref_name }}"
-      SELF_UPGRADE_BRANCH: "self-upgrade-${{ github.ref_name }}"
 
     steps:
-      - name: Fail if branch is not head of branch.
-        if: ${{ !startsWith(github.ref, 'refs/heads/') && env.SOURCE_BRANCH != '' && env.SELF_UPGRADE_BRANCH != '' }}
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main'
         run: |
-          echo "This workflow should not be run on a non-branch-head."
+          echo "This workflow should not be run on a branch other than main."
           exit 1
 
       - uses: actions/checkout@v4
@@ -38,7 +34,7 @@ jobs:
           go-version: ${{ steps.go-version.outputs.result }}
 
       - run: |
-          git checkout -B "$SELF_UPGRADE_BRANCH"
+          git checkout -B "self-upgrade"
 
       - run: |
           make -j upgrade-klone
@@ -58,10 +54,10 @@ jobs:
 
       - if: ${{ steps.is-up-to-date.outputs.result != 'true' }}
         run: |
-          git config --global user.name "cert-manager-bot"
-          git config --global user.email "cert-manager-bot@users.noreply.github.com"
+          git config --global user.name "jetstack-bot"
+          git config --global user.email "jetstack-bot@users.noreply.github.com"
           git add -A && git commit -m "BOT: run 'make upgrade-klone' and 'make generate'" --signoff
-          git push -f origin "$SELF_UPGRADE_BRANCH"
+          git push -f origin self-upgrade
 
       - if: ${{ steps.is-up-to-date.outputs.result != 'true' }}
         uses: actions/github-script@v7
@@ -71,8 +67,8 @@ jobs:
             const pulls = await github.rest.pulls.list({
               owner: owner,
               repo: repo,
-              head: owner + ':' + process.env.SELF_UPGRADE_BRANCH,
-              base: process.env.SOURCE_BRANCH,
+              head: owner + ':self-upgrade',
+              base: 'main',
               state: 'open',
             });
             
@@ -81,8 +77,8 @@ jobs:
                 title: '[CI] Merge self-upgrade into main',
                 owner: owner,
                 repo: repo,
-                head: process.env.SELF_UPGRADE_BRANCH,
-                base: process.env.SOURCE_BRANCH,
+                head: 'self-upgrade',
+                base: 'main',
                 body: [
                   'This PR is auto-generated to bump the Makefile modules.',
                 ].join('\n'),
